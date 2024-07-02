@@ -1,0 +1,13 @@
+{
+    "op": "core/text-transform",
+    "description": "Extract year from DATA_COLUNA",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "columnName": "Ano ID",
+    "expression": "grel:toDate(value, 'yyyy-MM-dd').toString('yyyy')",
+    "onError": "set-to-blank",
+    "repeat": false,
+    "repeatCount": 1
+  }

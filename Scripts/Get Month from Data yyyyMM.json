@@ -1,0 +1,14 @@
+  {
+    "op": "core/column-addition",
+    "description": "Create column Mes Ano ID at index 1 based on column Data LM using expression grel:value.toDate('yyyy-MM-dd').toString('yyyyMM')",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Mes Ano ID LM",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data LM",
+    "expression": "grel:value.toDate('yyyy-MM-dd').toString('yyyyMM')",
+    "onError": "set-to-blank",
+    "omitted": false
+  }

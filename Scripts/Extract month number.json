@@ -1,0 +1,13 @@
+{
+    "op": "core/text-transform",
+    "description": "Extract month number from DATA_LM",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "columnName": "Mes ID",
+    "expression": "grel:value.split('-')[1].toNumber()",
+    "onError": "set-to-blank",
+    "repeat": false,
+    "repeatCount": 0
+  }
