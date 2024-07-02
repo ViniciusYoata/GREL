@@ -1,0 +1,13 @@
+  {
+    "op": "core/column-addition",
+    "description": "Trim and Title Case",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "newColumnName": "Água suja x Água limpa (Title Case)",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Água suja x Água limpa",
+    "expression": "grel:value.trim().toLowercase().toTitlecase()",
+    "onError": "set-to-blank"
+  }
