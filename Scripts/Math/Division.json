@@ -1,0 +1,14 @@
+{
+    "op": "core/column-addition",
+    "description": "Divisão entre colunas",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Perc Rup",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Nº",
+    "expression": "grel:cells[COLUNA1].value / cells[COLUNA2].value",
+    "onError": "set-to-blank",
+    "omitted": false
+  }
