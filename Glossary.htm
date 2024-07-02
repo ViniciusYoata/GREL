@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GitHub JSON Viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -73,13 +77,33 @@
     button:hover {
         background-color: #0056b3;
     }
+	
+	
+	.link-item {
+    display: block;
+    margin-bottom: 10px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.link-item i {
+    margin-right: 8px;
+}
+
+.link-item:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+
 </style>
 </head>
 <body>
 <div id="container">
     <div id="fileList">
         <h3>Arquivos JSON:</h3>
-        <ul id="tree"></ul>
+        <div id="tree"></div>
     </div>
     <div id="jsonContent">
         <h3>Conteúdo JSON:</h3>
@@ -88,12 +112,63 @@
         <button id="downloadButton">Download</button>
     </div>
 </div>
+
+<div id="links">
+    <h3>Links Úteis:</h3>
+    <a href="https://github.com/ViniciusYoata/GREL" target="_blank" class="link-item">
+        <i class="fa-brands fa-github"></i>
+        Projeto no GitHub
+    </a>
+    <a href="https://www.linkedin.com/in/yoata/" target="_blank" class="link-item">
+        <i class="fa-brands fa-linkedin"></i>
+        Perfil no LinkedIn
+    </a>
+</div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    fetchFilesAndFolders('Scripts');
+    // Inicializa a árvore com uma estrutura vazia
+    $('#tree').jstree({
+        'core': {
+            'data': function(node, cb) {
+                if (node.id === "#") {
+                    // Carrega a estrutura inicial da árvore (nível raiz)
+                    fetchFilesAndFolders('Scripts', node.id, cb);
+                } else {
+                    // Carrega subdiretórios
+                    fetchFilesAndFolders(node.id, node.id, cb);
+                }
+            },
+            'check_callback': true,
+            'themes': {
+                'icons': true
+            }
+        },
+        'plugins': ["wholerow", "types"],
+        'types': {
+            'default': {
+                'icon': 'jstree-folder'
+            },
+            'file': {
+                'icon': 'jstree-file'
+            }
+        }
+    });
+
+    // Evento de seleção de nó na árvore
+    $('#tree').on('select_node.jstree', function (e, data) {
+        const node = data.node;
+        if (node.type === 'file') {
+            loadJsonContent(node.original.download_url);
+        }
+    });
+
+    // Inicializa os botões de copiar e download
+    initButtons();
 });
 
-async function fetchFilesAndFolders(path) {
+async function fetchFilesAndFolders(path, nodeId, cb) {
     const repoOwner = 'ViniciusYoata';
     const repoName = 'GREL';
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
@@ -104,30 +179,62 @@ async function fetchFilesAndFolders(path) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const items = await response.json();
-        const treeElement = document.getElementById('tree');
-        buildTree(treeElement, items, path);
+        const data = items.map(item => ({
+            id: item.path,
+            text: item.name,
+            type: item.type === 'file' ? 'file' : 'default',
+            children: item.type === 'dir',
+            download_url: item.download_url,
+            icon: item.type === 'file' ? 'jstree-file' : 'jstree-folder'
+        }));
+        cb(data);
     } catch (error) {
         console.error('Error fetching files and folders:', error);
     }
+}  
+
+
+async function loadJsonContent(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const jsonContent = await response.json();
+        const formattedJson = JSON.stringify(jsonContent, null, 2);
+        const pre = document.querySelector('#jsonContent pre');
+        pre.textContent = formattedJson;
+        hljs.highlightElement(pre); // Aplica a coloração de sintaxe com highlight.js
+    } catch (error) {
+        console.error('Error fetching JSON content:', error);
+    }
 }
 
-function buildTree(container, items, path) {
-    items.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item.name;
-        container.appendChild(li);
+function initButtons() {
+    // Manipulador de evento para o botão de copiar para a área de transferência
+    document.querySelector('#copyButton').addEventListener('click', () => {
+        const jsonContent = document.querySelector('#jsonContent pre').textContent;
+        navigator.clipboard.writeText(jsonContent).then(() => {
+            alert('Conteúdo copiado para a área de transferência!');
+        }).catch(err => {
+            console.error('Erro ao copiar texto: ', err);
+        });
+    });
 
-        if (item.type === 'dir') {
-            const ul = document.createElement('ul');
-            li.appendChild(ul);
-            fetchFilesAndFolders(`${path}/${item.name}`);
-        } else if (item.name.endsWith('.json')) {
-            li.addEventListener('click', () => loadJsonContent(item.download_url));
-        }
+    // Manipulador de evento para o botão de download do JSON
+    document.querySelector('#downloadButton').addEventListener('click', () => {
+        const jsonContent = document.querySelector('#jsonContent pre').textContent;
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'content.json'; // Você pode definir um nome de arquivo mais específico
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
 }
-
-// Rest of the JavaScript code for loadJsonContent, copyButton, and downloadButton
 </script>
 </body>
 </html>
