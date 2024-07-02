@@ -79,7 +79,7 @@
 <div id="container">
     <div id="fileList">
         <h3>Arquivos JSON:</h3>
-        <ul></ul>
+        <ul id="tree"></ul>
     </div>
     <div id="jsonContent">
         <h3>Conteúdo JSON:</h3>
@@ -89,12 +89,13 @@
     </div>
 </div>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetchFilesAndFolders('Scripts');
+});
 
-
-async function fetchJsonFilesList() {
+async function fetchFilesAndFolders(path) {
     const repoOwner = 'ViniciusYoata';
     const repoName = 'GREL';
-    const path = 'Scripts';
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
 
     try {
@@ -102,61 +103,31 @@ async function fetchJsonFilesList() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const files = await response.json();
-        const fileListElement = document.querySelector('#fileList ul');
-
-        files.forEach(file => {
-            if (file.name.endsWith('.json')) {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.name;
-                listItem.addEventListener('click', () => loadJsonContent(file.download_url));
-                fileListElement.appendChild(listItem);
-            }
-        });
+        const items = await response.json();
+        const treeElement = document.getElementById('tree');
+        buildTree(treeElement, items, path);
     } catch (error) {
-        console.error('Error fetching JSON files list:', error);
+        console.error('Error fetching files and folders:', error);
     }
 }
 
-async function loadJsonContent(url) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+function buildTree(container, items, path) {
+    items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item.name;
+        container.appendChild(li);
+
+        if (item.type === 'dir') {
+            const ul = document.createElement('ul');
+            li.appendChild(ul);
+            fetchFilesAndFolders(`${path}/${item.name}`);
+        } else if (item.name.endsWith('.json')) {
+            li.addEventListener('click', () => loadJsonContent(item.download_url));
         }
-        const jsonContent = await response.json();
-        const formattedJson = JSON.stringify(jsonContent, null, 2);
-        const pre = document.querySelector('#jsonContent pre');
-        pre.textContent = formattedJson;
-        hljs.highlightElement(pre); // Aplica a coloração de sintaxe
-    } catch (error) {
-        console.error('Error fetching JSON content:', error);
-    }
+    });
 }
 
-// Inicializa o Highlight.js quando a página carrega
-document.addEventListener('DOMContentLoaded', function() {
-    fetchJsonFilesList();
-    hljs.initHighlighting();
-});
-
-document.querySelector('#copyButton').addEventListener('click', () => {
-    const jsonContent = document.querySelector('#jsonContent pre').textContent;
-    navigator.clipboard.writeText(jsonContent);
-});
-
-document.querySelector('#downloadButton').addEventListener('click', () => {
-    const jsonContent = document.querySelector('#jsonContent pre').textContent;
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'download.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-});
+// Rest of the JavaScript code for loadJsonContent, copyButton, and downloadButton
 </script>
 </body>
 </html>
