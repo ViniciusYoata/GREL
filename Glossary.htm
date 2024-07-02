@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub JSON Files List</title>
+<script>
+async function fetchJsonFilesList() {
+    const repoOwner = 'ViniciusYoata';
+    const repoName = 'GREL';
+    const path = 'Scripts'; // Caminho do diretório no repositório
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const files = await response.json();
+        const jsonFiles = files.filter(file => file.name.endsWith('.json'));
+
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = ''; // Limpa a lista
+
+        // Lista os arquivos JSON
+        jsonFiles.forEach(file => {
+            fileList.innerHTML += `<li><a href="${file.download_url}" target="_blank">${file.name}</a></li>`;
+        });
+    } catch (error) {
+        console.error('Error fetching JSON files list:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchJsonFilesList();
+});
+</script>
+</head>
+<body>
+<h1>Lista de Arquivos JSON no Repositório</h1>
+<ul id="fileList"></ul>
+</body>
+</html>
