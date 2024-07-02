@@ -3,38 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GitHub JSON Files List</title>
+<title>GitHub JSON Viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+    }
+    #container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    #fileList {
+        flex: 1;
+        margin-right: 20px;
+        padding: 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    #jsonContent {
+        flex: 2;
+        padding: 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    #fileList h3, #jsonContent h3 {
+        margin-top: 0;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+    ul li {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    ul li:hover {
+        background-color: #f9f9f9;
+    }
+    pre {
+        margin-top: 0;
+        padding: 10px;
+        background-color: #f8f8f8;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+    }
+    button {
+        padding: 8px 16px;
+        margin-right: 10px;
+        font-size: 16px;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+<div id="container">
+    <div id="fileList">
+        <h3>Arquivos JSON:</h3>
+        <ul></ul>
+    </div>
+    <div id="jsonContent">
+        <h3>Conteúdo JSON:</h3>
+        <pre></pre>
+        <button id="copyButton">Copiar</button>
+        <button id="downloadButton">Download</button>
+    </div>
+</div>
 <script>
+
+
 async function fetchJsonFilesList() {
     const repoOwner = 'ViniciusYoata';
     const repoName = 'GREL';
-    const path = 'Scripts'; // Caminho do diretório no repositório
+    const path = 'Scripts';
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
 
     try {
         const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const files = await response.json();
-        const jsonFiles = files.filter(file => file.name.endsWith('.json'));
+        const fileListElement = document.querySelector('#fileList ul');
 
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = ''; // Limpa a lista
-
-        // Lista os arquivos JSON
-        jsonFiles.forEach(file => {
-            fileList.innerHTML += `<li><a href="${file.download_url}" target="_blank">${file.name}</a></li>`;
+        files.forEach(file => {
+            if (file.name.endsWith('.json')) {
+                const listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.addEventListener('click', () => loadJsonContent(file.download_url));
+                fileListElement.appendChild(listItem);
+            }
         });
     } catch (error) {
         console.error('Error fetching JSON files list:', error);
     }
 }
 
+async function loadJsonContent(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const jsonContent = await response.json();
+        const formattedJson = JSON.stringify(jsonContent, null, 2);
+        const pre = document.querySelector('#jsonContent pre');
+        pre.textContent = formattedJson;
+        hljs.highlightElement(pre); // Aplica a coloração de sintaxe
+    } catch (error) {
+        console.error('Error fetching JSON content:', error);
+    }
+}
+
+// Inicializa o Highlight.js quando a página carrega
 document.addEventListener('DOMContentLoaded', function() {
     fetchJsonFilesList();
+    hljs.initHighlighting();
+});
+
+document.querySelector('#copyButton').addEventListener('click', () => {
+    const jsonContent = document.querySelector('#jsonContent pre').textContent;
+    navigator.clipboard.writeText(jsonContent);
+});
+
+document.querySelector('#downloadButton').addEventListener('click', () => {
+    const jsonContent = document.querySelector('#jsonContent pre').textContent;
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'download.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 });
 </script>
-</head>
-<body>
-<h1>Lista de Arquivos JSON no Repositório</h1>
-<ul id="fileList"></ul>
 </body>
 </html>

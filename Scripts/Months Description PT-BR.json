@@ -1,0 +1,13 @@
+{
+"op":"core/text-transform",
+"description":"Convertmonthnumbertomonthname",
+"engineConfig":{
+"mode":"row-based",
+"facets":[]
+},
+"columnName":"MesDESC",
+"expression":"grel:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][value.toNumber()-1]",
+"onError":"set-to-blank",
+"repeat":false,
+"repeatCount":1
+}
