@@ -1,0 +1,13 @@
+{
+    "op": "core/text-transform",
+    "description": "Replace ANTT/DER with ANTT in column Órgão Ofensor",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "Órgão Ofensor",
+    "expression": "value.replace('ANTT/DER', 'ANTT')",
+    "onError": "keep-original",
+    "repeat": false,
+    "repeatCount": 10
+  }

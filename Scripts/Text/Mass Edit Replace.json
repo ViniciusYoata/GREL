@@ -1,0 +1,21 @@
+  {
+    "op": "core/mass-edit",
+    "description": "Edit Cell [Órgão Ofensor] (#### Rows)",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "columnName": "Órgão Ofensor",
+    "expression": "value",
+    "edits": [
+      {
+        "fromBlank": false,
+        "fromError": false,
+        "from": [
+          "ANTT/DER"
+        ],
+        "to": "ANTT",
+        "type": "text"
+      }
+    ]
+  }
