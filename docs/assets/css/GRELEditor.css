@@ -222,3 +222,18 @@
 .editor-row.highlight {
     background-color: #ffebeb; /* Cor de fundo para destacar o item */
 }
+
+
+.array-items-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.array-item {
+    /* Estilos para os itens do array */
+}
+
+.add-item-button {
+    align-self: flex-start; /* Alinha o botão ao início da linha */
+    margin-top: 10px; /* Adiciona uma margem superior para separá-lo dos itens do array */
+}

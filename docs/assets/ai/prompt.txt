@@ -1,0 +1,9 @@
+Vamos colocar todos os objetivos desse projeto em lista novamente. 
+Teremos tres partes, a primeira é uma lista em arvore para buscar os arquivos no diretorio do github. 
+Ao clicar nesses itens ele é carregado em uma segunda parte que mostra o conteudo formatado com o color code para json abaixo temos os botoes de copiar para clipboard e download. Quando efetuar o download precisa manter o mesmo nome do arquivo original. 
+Na terceira parte deve abrir um editor do json que permite editar os elementos do json. 
+Para isso é analisado que tipo de item é, e os items são tipos primitivos (numericos,strings etc), vetores, objetos (composicao de primitivos e/ou vetores) e vetores de objetos. 
+
+No editor esses elementos devem ficar identados de uma forma simples, clara e objetiva.  Deve se também ter botoes para que remova os itens e essa remocao deve ser permitida para todos os itens e seus filhos. 
+
+Ao digitar deve-se ir  ajustando o item ao input do usuario. 

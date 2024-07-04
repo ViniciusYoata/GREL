@@ -94,9 +94,13 @@ function renderJsonEditor(json) {
 
 function buildEditorUI(jsonObject, parentKey = '', depth = 0) {
     const container = document.createElement('div');
+	
+	
     Object.keys(jsonObject).forEach(key => {
-        const value = jsonObject[key];
+const value = jsonObject[key];
         const fullKey = parentKey ? `${parentKey}.${key}` : key;
+        const isPartOfArray = Array.isArray(jsonObject) && !isNaN(key);
+
         const editorRow = document.createElement('div');
         editorRow.className = `editor-row depth-${depth}`;
 
@@ -166,23 +170,40 @@ function buildEditorUI(jsonObject, parentKey = '', depth = 0) {
             editorRow.appendChild(listContainer);
 
             // Add item button
-            const addItemButton = document.createElement('button');
-            addItemButton.textContent = 'Adicionar Item';
-            addItemButton.onclick = () => addArrayItem(fullKey, value);
-            editorRow.appendChild(addItemButton);
+   // Determine se o array contém primitivos ou objetos
+    const arrayContainsObjects = value.length > 0 && typeof value[0] === 'object';
+
+    // Crie o botão "Adicionar Item" ou "Adicionar Objeto" com base no conteúdo do array
+    const addButtonLabel = arrayContainsObjects ? 'Adicionar Objeto' : 'Adicionar Item';
+    const addItemButton = document.createElement('button');
+    addItemButton.textContent = addButtonLabel;
+    addItemButton.onclick = () => {
+        const itemType = arrayContainsObjects ? 'object' : 'primitive';
+        addArrayItem(fullKey, value, itemType);
+    };
+    editorRow.appendChild(addItemButton);
+
+    editorRow.appendChild(listContainer);
         } else if (typeof value === 'object' && value !== null) {
             // Tratamento para objetos
             const objectEditor = buildEditorUI(value, fullKey, depth + 1);
             editorRow.appendChild(objectEditor);
         } else {
                    // Tratamento para valores primitivos
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = value;
-        input.addEventListener('input', function() {
-            setJsonValueByKey(jsonContent, fullKey, this.value);
-            updateJsonDisplay(jsonContent);
-        });
+ const input = document.createElement('input');
+            input.type = (typeof value === 'number') ? 'number' : 'text';
+            input.value = value;
+            input.addEventListener('input', function() {
+                const newValue = (input.type === 'number') ? parseFloat(this.value) || 0 : this.value;
+                if (isPartOfArray) {
+                    // Se faz parte de um array, precisamos passar o índice como parte do caminho
+                    setJsonValueByKey(jsonContent, `${parentKey}[${key}]`, newValue);
+                } else {
+                    // Se não for parte de um array, passamos o caminho da chave normalmente
+                    setJsonValueByKey(jsonContent, fullKey, newValue);
+                }
+                updateJsonDisplay(jsonContent);
+            });
         editorRow.appendChild(input);
 			
 			
@@ -199,6 +220,21 @@ function buildEditorUI(jsonObject, parentKey = '', depth = 0) {
     });
 
     return container;
+}
+
+
+function getModelItem(model, keyPath) {
+    // Implementação que retorna um item do modelo JSON baseado no caminho da chave fornecido
+    // Exemplo de implementação simples:
+    const keys = keyPath.split(/\.|\[|\]/).filter(key => key);
+    let current = model;
+    for (const key of keys) {
+        if (current[key] === undefined) {
+            return undefined; // Ou algum valor padrão, se necessário
+        }
+        current = current[key];
+    }
+    return current;
 }
 
 function removeFieldByKey(keyPath, jsonObject) {
@@ -231,34 +267,25 @@ function removeFieldByKey(keyPath, jsonObject) {
     updateJsonDisplay(jsonObject);
 }
 
-
-function addArrayItem(keyPath, array) {
+function addArrayItem(keyPath, array, itemType) {
     let newItem;
-    if (array.length > 0) {
-        // Se o array não estiver vazio, verifique o tipo do primeiro item
-        const firstItemType = typeof array[0];
-        if (firstItemType === 'object' && array[0] !== null) {
-            // Se o primeiro item for um objeto, clone esse objeto
-            newItem = cloneItem(array[0]);
-        } else {
-            // Se o primeiro item for um valor primitivo, crie um novo valor primitivo
-            newItem = getDefaultForType(firstItemType);
+    if (itemType === 'object') {
+        // Se o modelo é um objeto, crie um novo objeto com chaves do modelo, mas com valores em branco
+        newItem = {};
+        const modelItem = getModelItemByPath(jsonModel, keyPath);
+        if (typeof modelItem === 'object' && !Array.isArray(modelItem)) {
+            Object.keys(modelItem).forEach(key => {
+                newItem[key] = ''; // Use o valor em branco como padrão
+            });
         }
     } else {
-        // Se o array estiver vazio, tente obter um modelo para o item
-        const modelItem = getModelItem(jsonModel, keyPath);
-        if (modelItem !== undefined) {
-            // Se um modelo existir, clone o item do modelo
-            newItem = cloneItem(modelItem);
-        } else {
-            // Como último recurso, crie um novo valor primitivo padrão
-            newItem = getDefaultForType('string'); // Ou outro valor primitivo padrão que faça sentido para o seu caso
-        }
+        // Se o modelo é um valor primitivo, use uma string vazia
+        newItem = '';
     }
-    
+
     array.push(newItem);
-    renderJsonEditor(jsonContent);
-    updateJsonDisplay(jsonContent);
+    renderJsonEditor(jsonContent); // Atualize a interface do editor
+    updateJsonDisplay(jsonContent); // Atualize a exibição do JSON
 }
 
 function getDefaultForType(type) {
@@ -272,6 +299,18 @@ function getDefaultForType(type) {
         default:
             return ''; // Pode ser necessário ajustar isso com base no seu caso de uso
     }
+}
+
+function getModelItemByPath(model, keyPath) {
+    const keys = keyPath.split(/\.|\[|\]/).filter(key => key);
+    let current = model;
+    for (const key of keys) {
+        if (current[key] === undefined) {
+            return ''; // Se o caminho não existir no modelo, retorne uma string vazia
+        }
+        current = current[key];
+    }
+    return current;
 }
 
 function cloneItem(item) {
@@ -315,7 +354,13 @@ function setJsonValueByKey(jsonObj, keyPath, newValue) {
         current = current[key];
     }
     const lastKey = keys[keys.length - 1];
-    current[lastKey] = newValue;
+    if (/^\d+$/.test(lastKey) && Array.isArray(current)) {
+        // Se o último chave é um índice de array, convertemos para número e atualizamos o valor
+        current[parseInt(lastKey, 10)] = newValue;
+    } else {
+        // Caso contrário, atualizamos o valor diretamente
+        current[lastKey] = newValue;
+    }
 }
 
 function removeArrayItemByKey(keyPath, index, jsonObject) {
