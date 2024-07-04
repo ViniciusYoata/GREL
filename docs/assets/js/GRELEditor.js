@@ -1,33 +1,49 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initTree();
     initButtons();
 });
+let jsonEditor;
 
 async function initTree() {
     try {
         $('#tree').jstree({
             'core': {
-                'data': async function(node, cb) {
+                'data': async function (node, cb) {
                     const path = node.id === "#" ? 'Scripts' : node.id;
                     const data = await fetchFilesAndFolders(path);
                     cb(data);
                 },
                 'check_callback': true,
-                'themes': { 'icons': true }
+                'themes': {
+                    'icons': true
+                }
             },
             'plugins': ["wholerow", "types"],
             'types': {
-                'default': { 'icon': 'jstree-folder' },
-                'file': { 'icon': 'jstree-file' }
+                'default': {
+                    'icon': 'jstree-folder'
+                },
+                'file': {
+                    'icon': 'jstree-file'
+                }
             }
-        }).on('select_node.jstree', async function(e, data) {
+        }).on('select_node.jstree', async function (e, data) {
             if (data.node.type === 'file') {
                 jsonFileName = data.node.text; // Atualiza o nome do arquivo quando um arquivo é selecionado
                 jsonContent = await loadJsonContent(data.node.original.download_url);
                 renderJsonEditor(jsonContent);
                 updateJsonDisplay(jsonContent);
+				
+				     try {
+                    const jsonContent = await loadJsonContent(data.node.original.download_url);
+                    renderJsonEditor(jsonContent); // Renderiza o editor com o JSON carregado
+                } catch (error) {
+                    console.error('Error loading JSON content:', error);
+                }
             }
         });
+
+
     } catch (error) {
         console.error('Error initializing tree:', error);
     }
@@ -38,21 +54,23 @@ async function fetchFilesAndFolders(path) {
     const repoName = 'GREL';
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
     const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
     const items = await response.json();
     return items.map(item => ({
-        id: item.path,
-        text: item.name,
-        type: item.type === 'file' ? 'file' : 'default',
-        children: item.type === 'dir',
-        download_url: item.download_url,
-        icon: item.type === 'file' ? 'jstree-file' : 'jstree-folder'
-    }));
+            id: item.path,
+            text: item.name,
+            type: item.type === 'file' ? 'file' : 'default',
+            children: item.type === 'dir',
+            download_url: item.download_url,
+            icon: item.type === 'file' ? 'jstree-file' : 'jstree-folder'
+        }));
 }
 
 async function loadJsonContent(url) {
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
     jsonModel = JSON.parse(JSON.stringify(json)); // Armazena uma cópia do JSON original como modelo
     return json;
@@ -74,7 +92,9 @@ function copyToClipboard() {
 
 function downloadJson() {
     const jsonContentStr = document.querySelector('#jsonContent pre').textContent;
-    const blob = new Blob([jsonContentStr], { type: 'application/json' });
+    const blob = new Blob([jsonContentStr], {
+        type: 'application/json'
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -86,18 +106,36 @@ function downloadJson() {
 }
 
 function renderJsonEditor(json) {
-    jsonContent = json; // Atualiza o objeto JSON global
-    const jsonEditorContainer = document.querySelector('#jsonEditorContainer');
-    jsonEditorContainer.innerHTML = ''; // Limpa o conteúdo anterior
-    jsonEditorContainer.appendChild(buildEditorUI(jsonContent)); // Adiciona o novo editor
+    const container = document.getElementById('jsonEditorContainer');
+    const options = {
+        mode: 'tree', // Configura o editor no modo 'tree'
+        onChange: function() {
+            // Atualiza a variável jsonContent sempre que houver uma mudança no conteúdo do editor
+            try {
+                jsonContent = jsonEditor.get();
+                // Aqui você pode adicionar código adicional se precisar fazer algo a cada mudança
+            } catch (error) {
+                // Erros podem ocorrer ao obter dados inválidos do JSONEditor, como JSON malformado
+                console.error('Não foi possível atualizar o jsonContent:', error);
+            }
+			
+			updateJsonDisplay(jsonContent); 
+        }
+    };
+// Inicialização ou atualização do JSONEditor
+    if (jsonEditor) {
+        jsonEditor.update(json);
+    } else {
+        jsonEditor = new JSONEditor(container, options);
+        jsonEditor.set(json);
+    }
 }
 
 function buildEditorUI(jsonObject, parentKey = '', depth = 0) {
     const container = document.createElement('div');
-	
-	
+
     Object.keys(jsonObject).forEach(key => {
-const value = jsonObject[key];
+        const value = jsonObject[key];
         const fullKey = parentKey ? `${parentKey}.${key}` : key;
         const isPartOfArray = Array.isArray(jsonObject) && !isNaN(key);
 
@@ -110,10 +148,10 @@ const value = jsonObject[key];
         removeItemButton.innerHTML = '<i class="fas fa-times-circle"></i>';
         removeItemButton.title = 'Remover';
         removeItemButton.onclick = () => removeFieldByKey(fullKey, jsonObject);
-        removeItemButton.addEventListener('mouseover', function() {
+        removeItemButton.addEventListener('mouseover', function () {
             this.closest('.editor-row').classList.add('highlight');
         });
-        removeItemButton.addEventListener('mouseout', function() {
+        removeItemButton.addEventListener('mouseout', function () {
             this.closest('.editor-row').classList.remove('highlight');
         });
 
@@ -140,20 +178,20 @@ const value = jsonObject[key];
                     itemContainer.className = `editor-item object-item depth-${depth + 1}`;
                     const nestedEditor = buildEditorUI(item, itemKey, depth + 1);
                     itemContainer.appendChild(nestedEditor);
-					
-					 const input = document.createElement('input');
+
+                    const input = document.createElement('input');
 
                 } else {
                     // Primitive value
                     itemContainer.className = `editor-item depth-${depth + 1}`;
                     const input = document.createElement('input');
-					input.type = 'text';
-					input.value = value;
-					input.addEventListener('input', function() {
-						setJsonValueByKey(jsonContent, fullKey, this.value);
-						updateJsonDisplay(jsonContent);
-					});
-					editorRow.appendChild(input);
+                    input.type = 'text';
+                    input.value = value;
+                    input.addEventListener('input', function () {
+                        setJsonValueByKey(jsonContent, fullKey, this.value);
+                        updateJsonDisplay(jsonContent);
+                    });
+                    editorRow.appendChild(input);
                 }
 
                 // Removal button
@@ -170,30 +208,30 @@ const value = jsonObject[key];
             editorRow.appendChild(listContainer);
 
             // Add item button
-   // Determine se o array contém primitivos ou objetos
-    const arrayContainsObjects = value.length > 0 && typeof value[0] === 'object';
+            // Determine se o array contém primitivos ou objetos
+            const arrayContainsObjects = value.length > 0 && typeof value[0] === 'object';
 
-    // Crie o botão "Adicionar Item" ou "Adicionar Objeto" com base no conteúdo do array
-    const addButtonLabel = arrayContainsObjects ? 'Adicionar Objeto' : 'Adicionar Item';
-    const addItemButton = document.createElement('button');
-    addItemButton.textContent = addButtonLabel;
-    addItemButton.onclick = () => {
-        const itemType = arrayContainsObjects ? 'object' : 'primitive';
-        addArrayItem(fullKey, value, itemType);
-    };
-    editorRow.appendChild(addItemButton);
+            // Crie o botão "Adicionar Item" ou "Adicionar Objeto" com base no conteúdo do array
+            const addButtonLabel = arrayContainsObjects ? 'Adicionar Objeto' : 'Adicionar Item';
+            const addItemButton = document.createElement('button');
+            addItemButton.textContent = addButtonLabel;
+            addItemButton.onclick = () => {
+                const itemType = arrayContainsObjects ? 'object' : 'primitive';
+                addArrayItem(fullKey, value, itemType);
+            };
+            editorRow.appendChild(addItemButton);
 
-    editorRow.appendChild(listContainer);
+            editorRow.appendChild(listContainer);
         } else if (typeof value === 'object' && value !== null) {
             // Tratamento para objetos
             const objectEditor = buildEditorUI(value, fullKey, depth + 1);
             editorRow.appendChild(objectEditor);
         } else {
-                   // Tratamento para valores primitivos
- const input = document.createElement('input');
+            // Tratamento para valores primitivos
+            const input = document.createElement('input');
             input.type = (typeof value === 'number') ? 'number' : 'text';
             input.value = value;
-            input.addEventListener('input', function() {
+            input.addEventListener('input', function () {
                 const newValue = (input.type === 'number') ? parseFloat(this.value) || 0 : this.value;
                 if (isPartOfArray) {
                     // Se faz parte de um array, precisamos passar o índice como parte do caminho
@@ -204,15 +242,7 @@ const value = jsonObject[key];
                 }
                 updateJsonDisplay(jsonContent);
             });
-        editorRow.appendChild(input);
-			
-			
-			
-			  
-
-  
-	
-	
+            editorRow.appendChild(input);
 
         }
 
@@ -221,7 +251,6 @@ const value = jsonObject[key];
 
     return container;
 }
-
 
 function getModelItem(model, keyPath) {
     // Implementação que retorna um item do modelo JSON baseado no caminho da chave fornecido
@@ -290,14 +319,14 @@ function addArrayItem(keyPath, array, itemType) {
 
 function getDefaultForType(type) {
     switch (type) {
-        case 'number':
-            return 0;
-        case 'boolean':
-            return false;
-        case 'string':
-            return '';
-        default:
-            return ''; // Pode ser necessário ajustar isso com base no seu caso de uso
+    case 'number':
+        return 0;
+    case 'boolean':
+        return false;
+    case 'string':
+        return '';
+    default:
+        return ''; // Pode ser necessário ajustar isso com base no seu caso de uso
     }
 }
 
@@ -321,19 +350,18 @@ function cloneItem(item) {
     }
 }
 
-
 function getDefaultForType(type) {
     switch (type) {
-        case 'number':
-            return 0;
-        case 'boolean':
-            return false;
-        case 'string':
-            return '';
-        case 'object':
-            return {};
-        default:
-            return '';
+    case 'number':
+        return 0;
+    case 'boolean':
+        return false;
+    case 'string':
+        return '';
+    case 'object':
+        return {};
+    default:
+        return '';
     }
 }
 
@@ -378,7 +406,6 @@ function removeArrayItemByKey(keyPath, index, jsonObject) {
         console.error('Tentativa de remover um item que não está em um array.');
     }
 }
-
 
 let jsonContent; // Armazena o conteúdo JSON atual
 let jsonFileName; // Armazena o nome do arquivo JSON atual
