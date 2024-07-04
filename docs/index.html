@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub JSON Viewer</title>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+
+
+<body>
+
+
+<div id="links">
+    <h3>Links Úteis:</h3>
+    <a href="https://github.com/ViniciusYoata/GREL" target="_blank" class="link-item">
+        <i class="fa-brands fa-github"></i>
+        Projeto no GitHub    
+    </a>
+    <a href="https://www.linkedin.com/in/yoata/" target="_blank" class="link-item">
+        <i class="fa-brands fa-linkedin"></i>
+        Perfil no LinkedIn    
+    </a>
+</div>
+
+<div id="container">
+    <div id="fileList">
+        <h3>Arquivos JSON:</h3>
+        <div id="tree"></div>
+    </div>
+   <div id="jsonContent">
+    <h3>Conteúdo JSON:</h3>
+    <pre></pre>
+    <!-- Div para os botões -->
+    <div id="buttonContainer">
+        <button id="copyButton">Copiar</button>
+        <button id="downloadButton">Download</button>
+    </div>
+    <!-- Div para o editor JSON -->
+    
+</div><div id="jsonEditorContainer"></div>
+</div>
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
+<link rel="stylesheet" href="assets/css/GRELEditor.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<!-- Inclua os modos de sintaxe que você precisa, por exemplo, para JavaScript: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+
+<script src="assets/js/GRELEditor.js"></script>
+
+
+
+</body>
+</html>
