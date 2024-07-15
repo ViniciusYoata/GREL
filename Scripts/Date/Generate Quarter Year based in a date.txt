@@ -1,0 +1,13 @@
+{
+  "op": "core/column-addition",
+  "description": "Create column Ano Tri at index 1 based on column Mês using expression to calculate trimester and year",
+  "engineConfig": {
+    "facets": [],
+    "mode": "row-based"
+  },
+  "newColumnName": "Ano Tri",
+  "baseColumnName": "Mês",
+  "expression": "grel:(((value.toDate('yyyy-MM-dd').datePart('month') - 1) / 3).floor() + 1).toString() + 'QTR/' + value.toDate('yyyy-MM-dd').datePart('year').toString().substring(2,4)",
+  "onError": "set-to-blank",
+  "columnInsertIndex": 1
+}
