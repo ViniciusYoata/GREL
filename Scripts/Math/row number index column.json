@@ -1,0 +1,15 @@
+[
+  {
+    "op": "core/column-addition",
+    "description": "Create column Index at index 1 based on column myColumn using expression rowIndex",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "newColumnName": "Index",
+    "columnInsertIndex": 1,
+    "baseColumnName": "myColumn",
+    "expression": "rowIndex",
+    "onError": "set-to-blank"
+  }
+]

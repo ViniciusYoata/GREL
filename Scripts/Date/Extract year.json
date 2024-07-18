@@ -1,13 +1,17 @@
-{
-    "op": "core/text-transform",
-    "description": "Extract year from DATA_COLUNA",
+ 
+ {
+    "op": "core/column-addition",
+    "description": "Create column Ano ID at index 1 based on column Data LY using expression Year - 1",
     "engineConfig": {
       "mode": "row-based",
       "facets": []
     },
-    "columnName": "Ano ID",
-    "expression": "grel:toDate(value, 'yyyy-MM-dd').toString('yyyy')",
+    "newColumnName": "Ano ID LY",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data LY",
+     "expression": "grel:toDate(value, 'yyyy-MM-dd').toString('yyyy')",
     "onError": "set-to-blank",
-    "repeat": false,
-    "repeatCount": 1
+    "omitted": false
   }
+
+

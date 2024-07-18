@@ -1,0 +1,14 @@
+{
+  "op": "core/column-addition",
+  "description": "Create 'Data LY' column by subtracting one year from 'Data'",
+  "engineConfig": {
+    "mode": "row-based",
+    "facets": []
+  },
+  "newColumnName": "Data LY",
+  "columnInsertIndex": 1,
+  "baseColumnName": "Data",
+  "expression": "grel:toDate(value, 'yyyy-MM-dd').inc(-1, 'year').toString('yyyy-MM-dd')",
+  "onError": "set-to-blank",
+  "omitted": false
+}

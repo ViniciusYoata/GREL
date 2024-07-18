@@ -1,0 +1,58 @@
+[
+  {
+    "op": "core/column-addition",
+    "description": "Create 'Data LM' column by subtracting one month from 'Data'",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Data LM",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data",
+    "expression": "grel:toDate(value, 'yyyy-MM-dd').inc(-1, 'months').toString('yyyy-MM-dd')",
+    "onError": "set-to-blank",
+    "omitted": false
+  },
+  {
+    "op": "core/column-addition",
+    "description": "Create 'Data LY' column by subtracting one year from 'Data'",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Data LY",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data",
+    "expression": "grel:toDate(value, 'yyyy-MM-dd').inc(-1, 'year').toString('yyyy-MM-dd')",
+    "onError": "set-to-blank",
+    "omitted": false
+  },
+  {
+    "op": "core/column-addition",
+    "description": "Create column Mes Ano ID at index 1 based on column Data LM using expression grel:value.toDate('yyyy-MM-dd').toString('yyyyMM')",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Mes Ano ID LM",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data LM",
+    "expression": "grel:value.toDate('yyyy-MM-dd').toString('yyyyMM')",
+    "onError": "set-to-blank",
+    "omitted": false
+  },
+  {
+    "op": "core/column-addition",
+    "description": "Create column Ano ID at index 1 based on column Data LY using expression Year - 1",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Ano ID LY",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data LY",
+    "expression": "grel:toDate(value, 'yyyy-MM-dd').toString('yyyy')",
+    "onError": "set-to-blank",
+    "omitted": false
+  }
+]

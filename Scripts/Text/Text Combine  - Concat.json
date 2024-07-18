@@ -1,0 +1,13 @@
+ {
+    "op": "core/column-addition",
+    "description": "Create new column at index 2 based on column Coluna1 by concatenating Coluna1 and Coluna2 with a hyphen",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "newColumnName": "ColunaConcatenada",
+    "columnInsertIndex": 2,
+    "baseColumnName": "Coluna1",
+    "expression": "grel:cells['Coluna1'].value + '-' + cells['Coluna2'].value",
+    "onError": "set-to-blank"
+  }

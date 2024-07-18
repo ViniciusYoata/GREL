@@ -1,0 +1,30 @@
+[  {
+    "op": "core/column-addition",
+    "description": "Create column Month ID as 202401",
+    "engineConfig": {
+      "mode": "row-based",
+      "facets": []
+    },
+    "newColumnName": "Mes ID",
+    "columnInsertIndex": 1,
+    "baseColumnName": "Data",
+    "expression": "grel:value.toDate('yyyy-MM-dd').toString('yyyyMM')",
+    "onError": "set-to-blank",
+    "omitted": false
+  },
+
+
+{
+  "op": "core/column-addition",
+  "description": "Create column Ano Tri at index 1 based on column Mês using expression to calculate trimester and year",
+  "engineConfig": {
+    "facets": [],
+    "mode": "row-based"
+  },
+  "newColumnName": "Month desc",
+  "baseColumnName": "Data",
+  "expression":"grel:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][value.toDate('yyyy-MM-dd').datePart('month').toNumber()-1]+ '/' + value.toDate('yyyy-MM-dd').datePart('year').toString().substring(2,4)",
+  "onError": "set-to-blank",
+  "columnInsertIndex": 1
+}
+]

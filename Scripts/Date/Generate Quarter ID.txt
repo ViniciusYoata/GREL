@@ -1,0 +1,13 @@
+{
+  "op": "core/column-addition",
+  "description": "Create column Qtr ID as 20241",
+  "engineConfig": {
+    "facets": [],
+    "mode": "row-based"
+  },
+  "newColumnName": "tri ID",
+  "baseColumnName": "Data",
+  "expression": "grel:value.toDate('yyyy-MM-dd').datePart('year').toString()"+(((value.toDate('yyyy-MM-dd').datePart('month') - 1) / 3).floor() + 1).toString() ,
+  "onError": "set-to-blank",
+  "columnInsertIndex": 1
+}
